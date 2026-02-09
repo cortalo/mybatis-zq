@@ -2,6 +2,8 @@ package com.zhengqing.mybatis.parsing;
 
 import cn.hutool.core.util.StrUtil;
 
+import java.util.List;
+
 /**
  * <p> SQL解析器 </p>
  *
@@ -14,10 +16,12 @@ public class GenericTokenParser {
 
     private String openToken; // 开始标记 -- eg: #{
     private String closeToken; // 结束标记 -- eg: }
+    private TokenHandler tokenHandler;
 
-    public GenericTokenParser(String openToken, String closeToken) {
+    public GenericTokenParser(String openToken, String closeToken, TokenHandler tokenHandler) {
         this.openToken = openToken;
         this.closeToken = closeToken;
+        this.tokenHandler = tokenHandler;
     }
 
     private String parse(String text) {
@@ -38,8 +42,7 @@ public class GenericTokenParser {
                 result.append(textChars, offset, start - offset);
                 offset = start + this.openToken.length();
                 String paramName = new String(textChars, offset, end - offset);
-                System.out.println(paramName);
-                result.append("?");
+                result.append(this.tokenHandler.handleToken(paramName));
                 offset = end + this.closeToken.length();
             }
             start = text.indexOf(this.openToken, offset);
@@ -51,9 +54,15 @@ public class GenericTokenParser {
     }
 
     public static void main(String[] args) {
-        GenericTokenParser genericTokenParser = new GenericTokenParser("#{", "}");
+        ParameterMappingTokenHandler parameterMappingTokenHandler = new ParameterMappingTokenHandler();
+        GenericTokenParser genericTokenParser = new GenericTokenParser("#{", "}",
+                parameterMappingTokenHandler);
         String sql = genericTokenParser.parse("select * from t_user where id = #{id} and name = #{name}");
         System.out.println(sql);
+
+        List<String> parameterMappings = parameterMappingTokenHandler.getParameterMappings();
+        System.out.println(parameterMappings);
+
     }
 
 
