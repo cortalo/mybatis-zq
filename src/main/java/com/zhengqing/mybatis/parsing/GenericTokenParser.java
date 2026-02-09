@@ -24,7 +24,7 @@ public class GenericTokenParser {
         this.tokenHandler = tokenHandler;
     }
 
-    private String parse(String text) {
+    public String parse(String text) {
         if (StrUtil.isBlank(text)) {
             return "";
         }

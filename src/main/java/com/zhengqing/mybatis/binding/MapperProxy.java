@@ -1,6 +1,8 @@
 package com.zhengqing.mybatis.binding;
 
 import com.zhengqing.mybatis.annotations.Select;
+import com.zhengqing.mybatis.parsing.GenericTokenParser;
+import com.zhengqing.mybatis.parsing.ParameterMappingTokenHandler;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.InvocationHandler;
@@ -24,10 +26,17 @@ public class MapperProxy implements InvocationHandler {
 
         // 拿到sql
         Select select = method.getAnnotation(Select.class);
-        String sql = select.value();
+        String originalSql = select.value();
+
+        // sql解析  #{}  --- ?
+        ParameterMappingTokenHandler parameterMappingTokenHandler = new ParameterMappingTokenHandler();
+        GenericTokenParser genericTokenParser = new GenericTokenParser("#{", "}", parameterMappingTokenHandler);
+        String sql = genericTokenParser.parse(originalSql);
 
         // 构建sql & 执行
         PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, (Integer) args[0]);
+        ps.setString(2, String.valueOf(args[1]));
         ps.execute();
 
         // 拿到结果集
