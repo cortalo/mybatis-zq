@@ -2,6 +2,7 @@ package com.zhengqing.mybatis;
 
 import com.zhengqing.demo.entity.User;
 import com.zhengqing.demo.mapper.UserMapper;
+import com.zhengqing.mybatis.binding.MapperProxyFactory;
 import org.junit.Test;
 
 import java.util.List;
@@ -17,10 +18,8 @@ public class TestApp {
 
     @Test
     public void test() throws Exception {
-        UserMapper userMapper = UserMapper.class.newInstance();
-
+        UserMapper userMapper = MapperProxyFactory.getProxy(UserMapper.class);
         List<User> userList = userMapper.selectList();
-
         System.out.println(userList);
     }
 
