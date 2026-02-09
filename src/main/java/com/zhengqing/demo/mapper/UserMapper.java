@@ -14,7 +14,7 @@ import java.util.List;
  */
 public interface UserMapper {
 
-    @Select("select * from online_shopping_user")
-    List<User> selectList();
+    @Select("select * from online_shopping_user where user_id = #{user_id} and name = #{name}")
+    List<User> selectList(Integer user_id, String name);
 
 }

@@ -19,7 +19,7 @@ public class TestApp {
     @Test
     public void test() throws Exception {
         UserMapper userMapper = MapperProxyFactory.getProxy(UserMapper.class);
-        List<User> userList = userMapper.selectList();
+        List<User> userList = userMapper.selectList(123, "zhangsan");
         System.out.println(userList);
     }
 

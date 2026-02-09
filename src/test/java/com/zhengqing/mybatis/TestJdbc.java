@@ -24,7 +24,9 @@ public class TestJdbc {
         Connection connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/online_shopping?useUnicode=true&characterEncoding=UTF8&useSSL=false", "root", "root");
 
         // 3、构建sql & 执行 -- 查询
-        PreparedStatement ps = connection.prepareStatement("select * from online_shopping_user");
+        PreparedStatement ps = connection.prepareStatement("select * from online_shopping_user where user_id = ? and name = ?");
+        ps.setInt(1, 123);
+        ps.setString(2, "zhangsan");
         ps.execute();
 
         // 4、拿到结果集
