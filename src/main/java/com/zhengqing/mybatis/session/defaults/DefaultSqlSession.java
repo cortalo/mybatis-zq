@@ -1,8 +1,10 @@
-package com.zhengqing.mybatis.session;
+package com.zhengqing.mybatis.session.defaults;
 
 import com.zhengqing.mybatis.binding.MapperProxyFactory;
 import com.zhengqing.mybatis.executor.Executor;
 import com.zhengqing.mybatis.mapping.MappedStatement;
+import com.zhengqing.mybatis.session.Configuration;
+import com.zhengqing.mybatis.session.SqlSession;
 
 import java.util.List;
 
