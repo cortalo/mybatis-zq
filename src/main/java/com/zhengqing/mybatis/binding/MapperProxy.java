@@ -5,6 +5,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.zhengqing.mybatis.annotations.Param;
 import com.zhengqing.mybatis.annotations.Select;
+import com.zhengqing.mybatis.executor.Executor;
+import com.zhengqing.mybatis.executor.SimpleExecutor;
 import com.zhengqing.mybatis.mapping.MappedStatement;
 import com.zhengqing.mybatis.parsing.GenericTokenParser;
 import com.zhengqing.mybatis.parsing.ParameterMappingTokenHandler;
@@ -29,7 +31,6 @@ import java.util.Map;
  */
 public class MapperProxy implements InvocationHandler {
 
-    private Map<Class, TypeHandler> typeHandlerMap = Maps.newHashMap();
     private Configuration configuration;
     private Class mapperClass;
 
@@ -37,27 +38,10 @@ public class MapperProxy implements InvocationHandler {
         this.configuration = configuration;
         this.mapperClass = mapperClass;
 
-        this.typeHandlerMap.put(Integer.class, new IntegerTypeHandler());
-        this.typeHandlerMap.put(Long.class, new LongTypeHandler());
-        this.typeHandlerMap.put(String.class, new StringTypeHandler());
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Connection connection = getConnection();
-
-        MappedStatement ms = this.configuration.getMappedStatement(this.mapperClass.getName() + "." + method.getName());
-        String originalSql = ms.getSql();
-
-        // sql解析  #{}  --- ?
-        ParameterMappingTokenHandler parameterMappingTokenHandler = new ParameterMappingTokenHandler();
-        GenericTokenParser genericTokenParser = new GenericTokenParser("#{", "}", parameterMappingTokenHandler);
-        String sql = genericTokenParser.parse(originalSql);
-        List<String> parameterMappings = parameterMappingTokenHandler.getParameterMappings();
-
-        // 构建sql & 执行
-        PreparedStatement ps = connection.prepareStatement(sql);
-
         // 获取mapper调用方法的参数名 -> 参数值
         Map<String, Object> paramValueMap = Maps.newHashMap();
         Parameter[] parameterList = method.getParameters();
@@ -68,55 +52,10 @@ public class MapperProxy implements InvocationHandler {
             paramValueMap.put(paramName, args[i]);
         }
 
-        // 设置值
-        for (int i = 0; i < parameterMappings.size(); i++) {
-            String jdbcColumnName = parameterMappings.get(i);
-            Object val = paramValueMap.get(jdbcColumnName);
-            this.typeHandlerMap.get(val.getClass()).setParameter(ps, i + 1, val);
-        }
-
-        ps.execute();
-
-        // 拿到mapper的返回类型
-        Class returnType = ms.getReturnType();
-
-        // 拿到结果集
-        ResultSet rs = ps.getResultSet();
-
-        // 拿到sql返回字段名称
-        List<String> columnList = Lists.newArrayList();
-        ResultSetMetaData metaData = rs.getMetaData();
-        for (int i = 0; i < metaData.getColumnCount(); i++) {
-            columnList.add(metaData.getColumnName(i + 1));
-        }
-
-        List list = Lists.newArrayList();
-
-        while (rs.next()) {
-            // 结果映射
-            Object instance = returnType.newInstance();
-            for (String columnName : columnList) {
-                Field field = ReflectUtil.getField(returnType, columnName);
-                Object val = this.typeHandlerMap.get(field.getType()).getResult(rs, columnName);
-                ReflectUtil.setFieldValue(instance, columnName, val);
-            }
-            list.add(instance);
-        }
-
-        // 释放资源
-        rs.close();
-        ps.close();
-        connection.close();
-        return list;
+        MappedStatement ms = this.configuration.getMappedStatement(this.mapperClass.getName() + "." + method.getName());
+        Executor executor = this.configuration.newExecutor();
+        return executor.query(ms, paramValueMap);
     }
 
-    @SneakyThrows
-    private static Connection getConnection() {
-        // 加载JDBC驱动
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        // 建立db连接
-        Connection connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/online_shopping?useUnicode=true&characterEncoding=UTF8&useSSL=false", "root", "root");
-        return connection;
-    }
 
 }
