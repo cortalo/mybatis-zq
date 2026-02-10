@@ -20,7 +20,7 @@ public interface UserMapper {
     @Select("select * from online_shopping_user where user_id = #{user_id}")
     User selectOne(@Param("user_id") Long user_id);
 
-    @Insert("insert into online_shopping_user(user_id, user_type, name, email, address, phone) values(#{user.user_id}, #{user.user_type}, #{user.name}, #{user.email}, #{user.address}, #{user.phone})")
+    @Insert("insert into online_shopping_user(user_type, name, email, address, phone) values(#{user.user_type}, #{user.name}, #{user.email}, #{user.address}, #{user.phone})")
     Integer insert(@Param("user") User user);
 
     @Delete("delete from online_shopping_user where user_id = #{user_id}")

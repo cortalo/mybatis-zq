@@ -114,8 +114,16 @@ public class SimpleExecutor implements Executor {
         Map<String, Object> paramValueMap = (Map<String, Object>) parameter;
         for (int i = 0; i < parameterMappings.size(); i++) {
             String jdbcColumnName = parameterMappings.get(i);
-            Object val = paramValueMap.get(jdbcColumnName);
-            typeHandlerMap.get(val.getClass()).setParameter(ps, i + 1, val);
+            if (jdbcColumnName.contains(".")) {
+                String[] split = jdbcColumnName.split("\\.");
+                String key = split[0];
+                Object instanceValue = paramValueMap.get(key);
+                Object fieldValue = ReflectUtil.getFieldValue(instanceValue, split[1]);
+                typeHandlerMap.get(fieldValue.getClass()).setParameter(ps, i + 1, fieldValue);
+            } else {
+                Object val = paramValueMap.get(jdbcColumnName);
+                typeHandlerMap.get(val.getClass()).setParameter(ps, i + 1, val);
+            }
         }
 
         ps.execute();

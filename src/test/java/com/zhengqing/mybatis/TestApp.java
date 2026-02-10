@@ -38,7 +38,12 @@ public class TestApp {
 
         Assert.assertEquals((Integer) 1, userMapper.update(125L, "wangwu"));
 
-//        System.out.println(userMapper.selectOne(1));
+        Assert.assertEquals((Integer) 1, userMapper.insert(User.builder()
+                .user_type(1)
+                .name("lihaibao")
+                .email("aki@qq.com")
+                .address("shanghai")
+                .phone("133").build()));
     }
 
 }
