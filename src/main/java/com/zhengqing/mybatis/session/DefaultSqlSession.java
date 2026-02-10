@@ -1,5 +1,6 @@
 package com.zhengqing.mybatis.session;
 
+import com.zhengqing.mybatis.binding.MapperProxyFactory;
 import com.zhengqing.mybatis.executor.Executor;
 import com.zhengqing.mybatis.mapping.MappedStatement;
 
@@ -56,6 +57,11 @@ public class DefaultSqlSession implements SqlSession {
     public <T> List<T> selectList(String statementId, Object parameter) {
         MappedStatement ms = this.configuration.getMappedStatement(statementId);
         return this.executor.query(ms, parameter);
+    }
+
+    @Override
+    public <T> T getMapper(Class<T> mapper) {
+        return MapperProxyFactory.getProxy(mapper, this);
     }
 
 }

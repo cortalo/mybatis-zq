@@ -11,6 +11,7 @@ import com.zhengqing.mybatis.mapping.MappedStatement;
 import com.zhengqing.mybatis.parsing.GenericTokenParser;
 import com.zhengqing.mybatis.parsing.ParameterMappingTokenHandler;
 import com.zhengqing.mybatis.session.Configuration;
+import com.zhengqing.mybatis.session.SqlSession;
 import com.zhengqing.mybatis.type.IntegerTypeHandler;
 import com.zhengqing.mybatis.type.LongTypeHandler;
 import com.zhengqing.mybatis.type.StringTypeHandler;
@@ -31,13 +32,12 @@ import java.util.Map;
  */
 public class MapperProxy implements InvocationHandler {
 
-    private Configuration configuration;
+    private SqlSession sqlSession;
     private Class mapperClass;
 
-    public MapperProxy(Configuration configuration, Class mapperClass) {
-        this.configuration = configuration;
+    public MapperProxy(SqlSession sqlSession, Class mapperClass) {
+        this.sqlSession = sqlSession;
         this.mapperClass = mapperClass;
-
     }
 
     @Override
@@ -52,9 +52,8 @@ public class MapperProxy implements InvocationHandler {
             paramValueMap.put(paramName, args[i]);
         }
 
-        MappedStatement ms = this.configuration.getMappedStatement(this.mapperClass.getName() + "." + method.getName());
-        Executor executor = this.configuration.newExecutor();
-        return executor.query(ms, paramValueMap);
+        String statementId = this.mapperClass.getName() + "." + method.getName();
+        return this.sqlSession.selectList(statementId, paramValueMap);
     }
 
 

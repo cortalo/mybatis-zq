@@ -6,6 +6,8 @@ import com.zhengqing.demo.mapper.UserMapper;
 import com.zhengqing.mybatis.binding.MapperProxyFactory;
 import com.zhengqing.mybatis.builder.XMLConfigBuilder;
 import com.zhengqing.mybatis.session.Configuration;
+import com.zhengqing.mybatis.session.DefaultSqlSession;
+import com.zhengqing.mybatis.session.SqlSession;
 import org.junit.Test;
 
 import java.util.List;
@@ -24,7 +26,9 @@ public class TestApp {
         XMLConfigBuilder xmlConfigBuilder = new XMLConfigBuilder();
         Configuration configuration = xmlConfigBuilder.parse();
 
-        UserMapper userMapper = MapperProxyFactory.getProxy(UserMapper.class, configuration);
+        SqlSession sqlSession = new DefaultSqlSession(configuration, configuration.newExecutor());
+        UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+
         List<User> userList = userMapper.selectList(125L, "wangwu");
         System.out.println(JSONUtil.toJsonStr(userList));
 
