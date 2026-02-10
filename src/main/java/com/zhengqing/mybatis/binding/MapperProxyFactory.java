@@ -1,5 +1,7 @@
 package com.zhengqing.mybatis.binding;
 
+import com.zhengqing.mybatis.session.Configuration;
+
 import java.lang.reflect.Proxy;
 
 /**
@@ -14,13 +16,13 @@ public class MapperProxyFactory {
     /**
      * 拿到代理类
      */
-    public static <T> T getProxy(Class<T> mapperClass) {
+    public static <T> T getProxy(Class<T> mapperClass, Configuration configuration) {
         /**
          * 第一个参数：类加载器
          * 第二个参数：增强方法所在的类，这个类实现的接口，表示这个代理类可以执行哪些方法。
          * 第三个参数：实现InvocationHandler接口，
          */
-        return (T) Proxy.newProxyInstance(mapperClass.getClassLoader(), new Class[]{mapperClass}, new MapperProxy());
+        return (T) Proxy.newProxyInstance(mapperClass.getClassLoader(), new Class[]{mapperClass}, new MapperProxy(configuration, mapperClass));
     }
 
 }

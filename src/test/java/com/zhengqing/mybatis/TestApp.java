@@ -5,6 +5,7 @@ import com.zhengqing.demo.entity.User;
 import com.zhengqing.demo.mapper.UserMapper;
 import com.zhengqing.mybatis.binding.MapperProxyFactory;
 import com.zhengqing.mybatis.builder.XMLConfigBuilder;
+import com.zhengqing.mybatis.session.Configuration;
 import org.junit.Test;
 
 import java.util.List;
@@ -21,9 +22,9 @@ public class TestApp {
     @Test
     public void test() throws Exception {
         XMLConfigBuilder xmlConfigBuilder = new XMLConfigBuilder();
-        xmlConfigBuilder.parse();
+        Configuration configuration = xmlConfigBuilder.parse();
 
-        UserMapper userMapper = MapperProxyFactory.getProxy(UserMapper.class);
+        UserMapper userMapper = MapperProxyFactory.getProxy(UserMapper.class, configuration);
         List<User> userList = userMapper.selectList(125L, "wangwu");
         System.out.println(JSONUtil.toJsonStr(userList));
 
