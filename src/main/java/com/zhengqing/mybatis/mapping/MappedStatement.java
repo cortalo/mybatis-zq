@@ -21,6 +21,7 @@ public class MappedStatement {
     private String id; // 唯一标识 eg: com.zhengqing.demo.mapper.UserMapper.selectList
     private String sql; // SQL
     private Class returnType;// 返回类型
+    private SqlCommandType sqlCommandType; // SQL命令类型
 
 
 }

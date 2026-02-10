@@ -1,13 +1,21 @@
 package com.zhengqing.mybatis.builder;
 
 import cn.hutool.core.util.ClassUtil;
+import com.google.common.collect.Lists;
+import com.zhengqing.mybatis.annotations.Delete;
+import com.zhengqing.mybatis.annotations.Insert;
 import com.zhengqing.mybatis.annotations.Select;
+import com.zhengqing.mybatis.annotations.Update;
 import com.zhengqing.mybatis.mapping.MappedStatement;
+import com.zhengqing.mybatis.mapping.SqlCommandType;
 import com.zhengqing.mybatis.session.Configuration;
+import lombok.SneakyThrows;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -19,6 +27,9 @@ import java.util.Set;
  */
 public class XMLConfigBuilder {
 
+    private List<Class<? extends Annotation>> sqlAnnotationTypeList =
+            Lists.newArrayList(Insert.class, Delete.class, Update.class, Select.class);
+
     public Configuration parse() {
         Configuration configuration = new Configuration();
         // 解析mapper
@@ -26,14 +37,29 @@ public class XMLConfigBuilder {
         return configuration;
     }
 
+    @SneakyThrows
     private void parseMapper(Configuration configuration) {
         Set<Class<?>> classes = ClassUtil.scanPackage("com.zhengqing.demo.mapper");
         for (Class<?> aClass : classes) {
             Method[] methods = aClass.getMethods();
             for (Method method : methods) {
-                // 拿到sql
-                Select select = method.getAnnotation(Select.class);
-                String originalSql = select.value(); // 原始sql
+                SqlCommandType sqlCommandType = null;
+                String originalSql = "";
+                for (Class<? extends Annotation> sqlAnnotationType : this.sqlAnnotationTypeList) {
+                    Annotation annotation = method.getAnnotation(sqlAnnotationType);
+                    if (annotation != null) {
+                        originalSql = (String) annotation.getClass().getMethod("value").invoke(annotation);
+                        if (annotation instanceof Insert) {
+                            sqlCommandType = SqlCommandType.INSERT;
+                        } else if (annotation instanceof Delete) {
+                            sqlCommandType = SqlCommandType.DELETE;
+                        } else if (annotation instanceof Update) {
+                            sqlCommandType = SqlCommandType.UPDATE;
+                        } else if (annotation instanceof Select) {
+                            sqlCommandType = SqlCommandType.SELECT;
+                        }
+                    }
+                }
 
                 // 拿到mapper的返回类型
                 Class returnType = null;
@@ -49,6 +75,7 @@ public class XMLConfigBuilder {
                         .id(aClass.getName() + "." + method.getName())
                         .sql(originalSql)
                         .returnType(returnType)
+                        .sqlCommandType(sqlCommandType)
                         .build();
                 configuration.addMappedStatement(mappedStatement);
             }
