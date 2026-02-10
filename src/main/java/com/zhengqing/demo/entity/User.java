@@ -1,5 +1,7 @@
 package com.zhengqing.demo.entity;
 
+import lombok.Data;
+
 /**
  * <p> 用户实体类 </p>
  *
@@ -7,10 +9,11 @@ package com.zhengqing.demo.entity;
  * @description
  * @date 2024/4/20 19:07
  */
+@Data
 public class User {
 
     private Long user_id;
-    private int user_type;
+    private Integer user_type;
     private String name;
     private String email;
     private String address;

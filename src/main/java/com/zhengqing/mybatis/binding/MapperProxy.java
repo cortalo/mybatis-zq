@@ -8,6 +8,7 @@ import com.zhengqing.mybatis.annotations.Select;
 import com.zhengqing.mybatis.parsing.GenericTokenParser;
 import com.zhengqing.mybatis.parsing.ParameterMappingTokenHandler;
 import com.zhengqing.mybatis.type.IntegerTypeHandler;
+import com.zhengqing.mybatis.type.LongTypeHandler;
 import com.zhengqing.mybatis.type.StringTypeHandler;
 import com.zhengqing.mybatis.type.TypeHandler;
 import lombok.SneakyThrows;
@@ -30,6 +31,7 @@ public class MapperProxy implements InvocationHandler {
 
     public MapperProxy() {
         this.typeHandlerMap.put(Integer.class, new IntegerTypeHandler());
+        this.typeHandlerMap.put(Long.class, new LongTypeHandler());
         this.typeHandlerMap.put(String.class, new StringTypeHandler());
     }
 
@@ -91,11 +93,13 @@ public class MapperProxy implements InvocationHandler {
         List list = Lists.newArrayList();
 
         while (rs.next()) {
-//            System.out.println(rs.getString("name") + " -- " + rs.getString("email"));
+            // 结果映射
             Object instance = returnType.newInstance();
-
-            ReflectUtil.setFieldValue(instance, "", null);
-
+            for (String columnName : columnList) {
+                Field field = ReflectUtil.getField(returnType, columnName);
+                Object val = this.typeHandlerMap.get(field.getType()).getResult(rs, columnName);
+                ReflectUtil.setFieldValue(instance, columnName, val);
+            }
             list.add(instance);
         }
 
