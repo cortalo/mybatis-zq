@@ -58,14 +58,17 @@ public class XMLConfigBuilder {
                         } else if (annotation instanceof Select) {
                             sqlCommandType = SqlCommandType.SELECT;
                         }
+                        break;
                     }
                 }
 
                 // 拿到mapper的返回类型
                 Class returnType = null;
+                boolean isSelectMany = false;
                 Type genericReturnType = method.getGenericReturnType();
                 if (genericReturnType instanceof ParameterizedType) {
                     returnType = (Class) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
+                    isSelectMany = true;
                 } else if (genericReturnType instanceof Class) {
                     returnType = (Class) genericReturnType;
                 }
@@ -76,6 +79,7 @@ public class XMLConfigBuilder {
                         .sql(originalSql)
                         .returnType(returnType)
                         .sqlCommandType(sqlCommandType)
+                        .isSelectMany(isSelectMany)
                         .build();
                 configuration.addMappedStatement(mappedStatement);
             }

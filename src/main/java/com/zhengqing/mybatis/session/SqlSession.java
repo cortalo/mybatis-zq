@@ -23,4 +23,6 @@ public interface SqlSession {
 
     <T> T getMapper(Class<T> mapper);
 
+    Configuration getConfiguration();
+
 }

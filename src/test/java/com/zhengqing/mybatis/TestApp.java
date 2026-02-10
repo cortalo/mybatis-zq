@@ -10,6 +10,7 @@ import com.zhengqing.mybatis.session.SqlSessionFactoryBuilder;
 import com.zhengqing.mybatis.session.defaults.DefaultSqlSession;
 import com.zhengqing.mybatis.session.SqlSession;
 import com.zhengqing.mybatis.session.defaults.DefaultSqlSessionFactory;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
@@ -31,6 +32,9 @@ public class TestApp {
 
         List<User> userList = userMapper.selectList(125L, "wangwu");
         System.out.println(JSONUtil.toJsonStr(userList));
+
+        User user = userMapper.selectOne(125L);
+        System.out.println(JSONUtil.toJsonStr(user));
 
 //        System.out.println(userMapper.selectOne(1));
     }

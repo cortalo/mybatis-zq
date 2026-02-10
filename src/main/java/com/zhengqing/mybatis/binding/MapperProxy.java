@@ -8,6 +8,7 @@ import com.zhengqing.mybatis.annotations.Select;
 import com.zhengqing.mybatis.executor.Executor;
 import com.zhengqing.mybatis.executor.SimpleExecutor;
 import com.zhengqing.mybatis.mapping.MappedStatement;
+import com.zhengqing.mybatis.mapping.SqlCommandType;
 import com.zhengqing.mybatis.parsing.GenericTokenParser;
 import com.zhengqing.mybatis.parsing.ParameterMappingTokenHandler;
 import com.zhengqing.mybatis.session.Configuration;
@@ -22,6 +23,8 @@ import java.lang.reflect.*;
 import java.sql.*;
 import java.util.List;
 import java.util.Map;
+
+import static com.zhengqing.mybatis.mapping.SqlCommandType.SELECT;
 
 /**
  * <p> mapper代理 </p>
@@ -53,7 +56,25 @@ public class MapperProxy implements InvocationHandler {
         }
 
         String statementId = this.mapperClass.getName() + "." + method.getName();
-        return this.sqlSession.selectList(statementId, paramValueMap);
+        MappedStatement ms = sqlSession.getConfiguration().getMappedStatement(statementId);
+        SqlCommandType sqlCommandType = ms.getSqlCommandType();
+        switch (sqlCommandType) {
+            case INSERT:
+                return this.sqlSession.insert(statementId, paramValueMap);
+            case DELETE:
+                return this.sqlSession.delete(statementId, paramValueMap);
+            case UPDATE:
+                return this.sqlSession.update(statementId, paramValueMap);
+            case SELECT:
+                if (ms.getIsSelectMany()) {
+                    return this.sqlSession.selectList(statementId, paramValueMap);
+                } else {
+                    return this.sqlSession.selectOne(statementId, paramValueMap);
+                }
+            default:
+                break;
+        }
+        return null;
     }
 
 
