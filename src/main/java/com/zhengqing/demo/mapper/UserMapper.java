@@ -1,6 +1,7 @@
 package com.zhengqing.demo.mapper;
 
 import com.zhengqing.demo.entity.User;
+import com.zhengqing.mybatis.annotations.Param;
 import com.zhengqing.mybatis.annotations.Select;
 
 import java.util.List;
@@ -15,6 +16,6 @@ import java.util.List;
 public interface UserMapper {
 
     @Select("select * from online_shopping_user where user_id = #{user_id} and name = #{name}")
-    List<User> selectList(Integer user_id, String name);
+    List<User> selectList(@Param("user_id") Integer user_id, @Param("name") String name);
 
 }
