@@ -1,5 +1,7 @@
 package com.zhengqing.mybatis.binding;
 
+import cn.hutool.core.util.ReflectUtil;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.zhengqing.mybatis.annotations.Param;
 import com.zhengqing.mybatis.annotations.Select;
@@ -11,10 +13,7 @@ import com.zhengqing.mybatis.type.TypeHandler;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.List;
 import java.util.Map;
 
@@ -81,15 +80,30 @@ public class MapperProxy implements InvocationHandler {
 
         // 拿到结果集
         ResultSet rs = ps.getResultSet();
+
+        // 拿到sql返回字段名称
+        List<String> columnList = Lists.newArrayList();
+        ResultSetMetaData metaData = rs.getMetaData();
+        for (int i = 0; i < metaData.getColumnCount(); i++) {
+            columnList.add(metaData.getColumnName(i + 1));
+        }
+
+        List list = Lists.newArrayList();
+
         while (rs.next()) {
-            System.out.println(rs.getString("name") + " -- " + rs.getString("email"));
+//            System.out.println(rs.getString("name") + " -- " + rs.getString("email"));
+            Object instance = returnType.newInstance();
+
+            ReflectUtil.setFieldValue(instance, "", null);
+
+            list.add(instance);
         }
 
         // 释放资源
         rs.close();
         ps.close();
         connection.close();
-        return null;
+        return list;
     }
 
     @SneakyThrows

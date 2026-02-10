@@ -9,8 +9,11 @@ package com.zhengqing.demo.entity;
  */
 public class User {
 
-    private Integer id;
+    private Long user_id;
+    private int user_type;
     private String name;
-    private Integer age;
+    private String email;
+    private String address;
+    private String phone;
 
 }
