@@ -6,6 +6,7 @@ import com.zhengqing.demo.mapper.UserMapper;
 import com.zhengqing.mybatis.builder.XMLConfigBuilder;
 import com.zhengqing.mybatis.session.Configuration;
 import com.zhengqing.mybatis.session.SqlSessionFactory;
+import com.zhengqing.mybatis.session.SqlSessionFactoryBuilder;
 import com.zhengqing.mybatis.session.defaults.DefaultSqlSession;
 import com.zhengqing.mybatis.session.SqlSession;
 import com.zhengqing.mybatis.session.defaults.DefaultSqlSessionFactory;
@@ -24,10 +25,7 @@ public class TestApp {
 
     @Test
     public void test() throws Exception {
-        XMLConfigBuilder xmlConfigBuilder = new XMLConfigBuilder();
-        Configuration configuration = xmlConfigBuilder.parse();
-
-        SqlSessionFactory sqlSessionFactory = new DefaultSqlSessionFactory(configuration);
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build();
         SqlSession sqlSession = sqlSessionFactory.openSession();
         UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
 
