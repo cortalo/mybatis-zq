@@ -5,6 +5,9 @@ import com.zhengqing.mybatis.annotations.Param;
 import com.zhengqing.mybatis.annotations.Select;
 import com.zhengqing.mybatis.parsing.GenericTokenParser;
 import com.zhengqing.mybatis.parsing.ParameterMappingTokenHandler;
+import com.zhengqing.mybatis.type.IntegerTypeHandler;
+import com.zhengqing.mybatis.type.StringTypeHandler;
+import com.zhengqing.mybatis.type.TypeHandler;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.InvocationHandler;
@@ -25,6 +28,14 @@ import java.util.Map;
  * @date 2024/4/21 19:57
  */
 public class MapperProxy implements InvocationHandler {
+
+    private Map<Class, TypeHandler> typeHandlerMap = Maps.newHashMap();
+
+    public MapperProxy() {
+        this.typeHandlerMap.put(Integer.class, new IntegerTypeHandler());
+        this.typeHandlerMap.put(String.class, new StringTypeHandler());
+    }
+
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         Connection connection = getConnection();
@@ -56,9 +67,7 @@ public class MapperProxy implements InvocationHandler {
         for (int i = 0; i < parameterMappings.size(); i++) {
             String jdbcColumnName = parameterMappings.get(i);
             Object val = paramValueMap.get(jdbcColumnName);
-            ps.setObject(i + 1, val);
-
-//            ps.setInt(1, (Integer) val);
+            this.typeHandlerMap.get(val.getClass()).setParameter(ps, i + 1, val);
         }
 
         ps.execute();
