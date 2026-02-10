@@ -18,4 +18,7 @@ public interface UserMapper {
     @Select("select * from online_shopping_user where user_id = #{user_id} and name = #{name}")
     List<User> selectList(@Param("user_id") Integer user_id, @Param("name") String name);
 
+    @Select("select * from online_shopping_user where user_id = #{user_id}")
+    User selectOne(@Param("user_id") Integer user_id);
+
 }

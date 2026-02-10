@@ -10,9 +10,7 @@ import com.zhengqing.mybatis.type.StringTypeHandler;
 import com.zhengqing.mybatis.type.TypeHandler;
 import lombok.SneakyThrows;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -71,6 +69,15 @@ public class MapperProxy implements InvocationHandler {
         }
 
         ps.execute();
+
+        // 拿到mapper的返回类型
+        Class returnType = null;
+        Type genericReturnType = method.getGenericReturnType();
+        if (genericReturnType instanceof ParameterizedType) {
+            returnType = (Class) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
+        } else if (genericReturnType instanceof Class) {
+            returnType = (Class) genericReturnType;
+        }
 
         // 拿到结果集
         ResultSet rs = ps.getResultSet();
