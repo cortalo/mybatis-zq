@@ -36,6 +36,8 @@ public class TestApp {
         User user = userMapper.selectOne(125L);
         System.out.println(JSONUtil.toJsonStr(user));
 
+        Assert.assertEquals((Integer) 1, userMapper.update(125L, "wangwu"));
+
 //        System.out.println(userMapper.selectOne(1));
     }
 
