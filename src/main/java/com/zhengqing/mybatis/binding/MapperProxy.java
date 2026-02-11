@@ -60,11 +60,11 @@ public class MapperProxy implements InvocationHandler {
         SqlCommandType sqlCommandType = ms.getSqlCommandType();
         switch (sqlCommandType) {
             case INSERT:
-                return this.sqlSession.insert(statementId, paramValueMap);
+                return this.convertResult(ms, this.sqlSession.insert(statementId, paramValueMap));
             case DELETE:
-                return this.sqlSession.delete(statementId, paramValueMap);
+                return this.convertResult(ms, this.sqlSession.delete(statementId, paramValueMap));
             case UPDATE:
-                return this.sqlSession.update(statementId, paramValueMap);
+                return this.convertResult(ms, this.sqlSession.update(statementId, paramValueMap));
             case SELECT:
                 if (ms.getIsSelectMany()) {
                     return this.sqlSession.selectList(statementId, paramValueMap);
@@ -73,6 +73,18 @@ public class MapperProxy implements InvocationHandler {
                 }
             default:
                 break;
+        }
+        return null;
+    }
+
+    private Object convertResult(MappedStatement ms, int updateCount) {
+        Class returnType = ms.getReturnType();
+        if (returnType == int.class || returnType == Integer.class) {
+            return updateCount;
+        } else if (returnType == Long.class) {
+            return Long.valueOf(updateCount);
+        } else if (returnType == void.class) {
+            return null;
         }
         return null;
     }
