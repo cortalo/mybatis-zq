@@ -5,9 +5,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.zhengqing.mybatis.annotations.Param;
 import com.zhengqing.mybatis.annotations.Select;
+import com.zhengqing.mybatis.mapping.MappedStatement;
 import com.zhengqing.mybatis.parsing.GenericTokenParser;
 import com.zhengqing.mybatis.parsing.ParameterMappingTokenHandler;
 import com.zhengqing.mybatis.parsing.TokenHandler;
+import com.zhengqing.mybatis.session.Configuration;
 import com.zhengqing.mybatis.type.IntegerTypeHandler;
 import com.zhengqing.mybatis.type.LongTypeHandler;
 import com.zhengqing.mybatis.type.StringTypeHandler;
@@ -25,30 +27,28 @@ import java.util.Map;
 
 public class MapperProxy implements InvocationHandler {
 
-    Map<Class<?>, TypeHandler> typeHandlerMap = Maps.newHashMap();
+    private Configuration configuration;
+    private Class<?> mapperClass;
 
-    public MapperProxy() {
-        typeHandlerMap.put(Integer.class, new IntegerTypeHandler());
-        typeHandlerMap.put(Long.class, new LongTypeHandler());
-        typeHandlerMap.put(String.class, new StringTypeHandler());
+    public MapperProxy(Configuration configuration, Class<?> mapperClass) {
+        this.configuration = configuration;
+        this.mapperClass = mapperClass;
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         Connection connection = getConnection();
-        TokenHandler tokenHandler = new ParameterMappingTokenHandler();
+        MappedStatement ms = configuration.getMappedStatement(this.mapperClass.getName() + "." + method.getName());
+        Map<Class<?>, TypeHandler> typeHandlerMap = configuration.getTypeHandlerMap();
 
-        String originalSql = method.getAnnotation(Select.class).value();
-        GenericTokenParser genericTokenParser = new GenericTokenParser("#{", "}", tokenHandler);
-        String sql = genericTokenParser.parse(originalSql);
-        PreparedStatement ps = connection.prepareStatement(sql);
+        PreparedStatement ps = connection.prepareStatement(ms.getSql());
 
         Map<String, Object> paramValueMap = new HashMap<>();
         for (int i = 0; i < method.getParameters().length; i++) {
             paramValueMap.put(method.getParameters()[i].getAnnotation(Param.class).value(), args[i]);
         }
 
-        List<String> sqlParameters = tokenHandler.getParameters();
+        List<String> sqlParameters = ms.getSqlParameters();
         for (int i = 0; i < sqlParameters.size(); i++) {
             Object value = paramValueMap.get(sqlParameters.get(i));
             typeHandlerMap.get(value.getClass()).setParameter(ps, i + 1, value);
@@ -63,18 +63,13 @@ public class MapperProxy implements InvocationHandler {
             columnList.add(metaData.getColumnName(i + 1));
         }
 
-        Class<?> returnType = null;
-        Type genericReturnType = method.getGenericReturnType();
-        if (genericReturnType instanceof ParameterizedType) {
-            returnType = (Class<?>) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
-        }
-
+        Class<?> returnType = ms.getReturnType();
         List list = Lists.newArrayList();
         while (rs.next()) {
             Object instance = returnType.newInstance();
             for (String columnName : columnList) {
                 Field field = ReflectUtil.getField(returnType, columnName);
-                Object val = this.typeHandlerMap.get(field.getType()).getResult(rs, columnName);
+                Object val = typeHandlerMap.get(field.getType()).getResult(rs, columnName);
                 ReflectUtil.setFieldValue(instance, field, val);
             }
             list.add(instance);
