@@ -12,9 +12,7 @@ import com.zhengqing.mybatis.type.TypeHandler;
 import lombok.SneakyThrows;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -55,6 +53,13 @@ public class MapperProxy implements InvocationHandler {
 
         ps.execute();
         ResultSet rs = ps.getResultSet();
+
+        Class<?> returnType = null;
+        Type genericReturnType = method.getGenericReturnType();
+        if (genericReturnType instanceof ParameterizedType) {
+            returnType = (Class<?>) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
+        }
+
         while (rs.next()) {
             System.out.println(rs.getString("name"));
         }
