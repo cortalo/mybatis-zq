@@ -1,6 +1,7 @@
 package com.zhengqing.mybatis.binding;
 
 import com.zhengqing.mybatis.annotations.Select;
+import com.zhengqing.mybatis.parsing.GenericTokenParser;
 import lombok.SneakyThrows;
 
 import java.lang.annotation.Annotation;
@@ -17,8 +18,11 @@ public class MapperProxy implements InvocationHandler {
         Connection connection = getConnection();
 
         String originalSql = method.getAnnotation(Select.class).value();
-        PreparedStatement ps = connection.prepareStatement("select * from online_shopping_user where user_id = ?");
+        GenericTokenParser genericTokenParser = new GenericTokenParser("#{", "}");
+        String sql = genericTokenParser.parse(originalSql);
+        PreparedStatement ps = connection.prepareStatement(sql);
         ps.setLong(1, (Long) args[0]);
+        ps.setString(2, (String) args[1]);
         ps.execute();
         ResultSet rs = ps.getResultSet();
         while (rs.next()) {
