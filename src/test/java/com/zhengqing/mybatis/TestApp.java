@@ -9,7 +9,7 @@ public class TestApp {
     @Test
     public void test() {
         UserMapper userMapper = MapperProxyFactory.getProxy(UserMapper.class);
-        userMapper.select();
+        userMapper.selectById(123L);
     }
 
 }

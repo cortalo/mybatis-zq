@@ -17,7 +17,8 @@ public class MapperProxy implements InvocationHandler {
         Connection connection = getConnection();
 
         String originalSql = method.getAnnotation(Select.class).value();
-        PreparedStatement ps = connection.prepareStatement(originalSql);
+        PreparedStatement ps = connection.prepareStatement("select * from online_shopping_user where user_id = ?");
+        ps.setLong(1, (Long) args[0]);
         ps.execute();
         ResultSet rs = ps.getResultSet();
         while (rs.next()) {

@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface UserMapper {
 
-    @Select("select * from online_shopping_user")
-    public List<User> select();
+    @Select("select * from online_shopping_user where user_id = #{user_id}")
+    public List<User> selectById(Long user_id);
 
 }
