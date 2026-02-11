@@ -2,6 +2,7 @@ package com.zhengqing.mybatis.parsing;
 
 import com.google.common.collect.Lists;
 
+import java.util.Collections;
 import java.util.List;
 
 public class ParameterMappingTokenHandler implements TokenHandler {
@@ -12,5 +13,10 @@ public class ParameterMappingTokenHandler implements TokenHandler {
     public String handleToken(String content) {
         parameterMappings.add(content);
         return "?";
+    }
+
+    @Override
+    public List<String> getParameters() {
+        return parameterMappings;
     }
 }
