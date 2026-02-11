@@ -1,6 +1,8 @@
 package com.zhengqing.mybatis.session;
 
 import com.google.common.collect.Maps;
+import com.zhengqing.mybatis.executor.Executor;
+import com.zhengqing.mybatis.executor.SimpleExecutor;
 import com.zhengqing.mybatis.mapping.MappedStatement;
 import com.zhengqing.mybatis.parsing.ParameterMappingTokenHandler;
 import com.zhengqing.mybatis.parsing.TokenHandler;
@@ -28,8 +30,13 @@ public class Configuration {
     public MappedStatement getMappedStatement(String id) {
         return mappedStatements.get(id);
     }
+
     public void addMappedStatement(String id, MappedStatement ms) {
         mappedStatements.put(id, ms);
+    }
+
+    public Executor newExecutor() {
+        return new SimpleExecutor(this);
     }
 
 }
