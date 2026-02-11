@@ -2,6 +2,7 @@ package com.zhengqing.mybatis.binding;
 
 import com.zhengqing.mybatis.annotations.Select;
 import com.zhengqing.mybatis.parsing.GenericTokenParser;
+import com.zhengqing.mybatis.parsing.ParameterMappingTokenHandler;
 import lombok.SneakyThrows;
 
 import java.lang.annotation.Annotation;
@@ -18,7 +19,8 @@ public class MapperProxy implements InvocationHandler {
         Connection connection = getConnection();
 
         String originalSql = method.getAnnotation(Select.class).value();
-        GenericTokenParser genericTokenParser = new GenericTokenParser("#{", "}");
+        GenericTokenParser genericTokenParser = new GenericTokenParser("#{", "}",
+                new ParameterMappingTokenHandler());
         String sql = genericTokenParser.parse(originalSql);
         PreparedStatement ps = connection.prepareStatement(sql);
         ps.setLong(1, (Long) args[0]);
