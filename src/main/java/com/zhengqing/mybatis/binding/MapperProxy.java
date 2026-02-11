@@ -1,10 +1,14 @@
 package com.zhengqing.mybatis.binding;
 
+import com.google.common.collect.Maps;
 import com.zhengqing.mybatis.annotations.Param;
 import com.zhengqing.mybatis.annotations.Select;
 import com.zhengqing.mybatis.parsing.GenericTokenParser;
 import com.zhengqing.mybatis.parsing.ParameterMappingTokenHandler;
 import com.zhengqing.mybatis.parsing.TokenHandler;
+import com.zhengqing.mybatis.type.LongTypeHandler;
+import com.zhengqing.mybatis.type.StringTypeHandler;
+import com.zhengqing.mybatis.type.TypeHandler;
 import lombok.SneakyThrows;
 
 import java.lang.annotation.Annotation;
@@ -20,6 +24,14 @@ import java.util.List;
 import java.util.Map;
 
 public class MapperProxy implements InvocationHandler {
+
+    Map<Class<?>, TypeHandler> typeHandlerMap = Maps.newHashMap();
+
+    public MapperProxy() {
+        typeHandlerMap.put(Long.class, new LongTypeHandler());
+        typeHandlerMap.put(String.class, new StringTypeHandler());
+    }
+
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         Connection connection = getConnection();
@@ -37,7 +49,8 @@ public class MapperProxy implements InvocationHandler {
 
         List<String> sqlParameters = tokenHandler.getParameters();
         for (int i = 0; i < sqlParameters.size(); i++) {
-            ps.setObject(i + 1, paramValueMap.get(sqlParameters.get(i)));
+            Object value = paramValueMap.get(sqlParameters.get(i));
+            typeHandlerMap.get(value.getClass()).setParameter(ps, i + 1, value);
         }
 
         ps.execute();
